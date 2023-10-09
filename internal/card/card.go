@@ -47,11 +47,23 @@ func cardErrorMesages(code stripe.ErrorCode) string {
 	var msg = ""
 	switch code {
 	case stripe.ErrorCodeCardDeclined:
-		msg = "your card declined brokie"
+		msg = "Your card declined brokie"
 	case stripe.ErrorCodeExpiredCard:
-		msg = "your card has expired"
+		msg = "Your card has expired"
+	case stripe.ErrorCodeIncorrectCVC:
+		msg = "Incorrect CVC"
+	case stripe.ErrorCodePostalCodeInvalid:
+		msg = "Incorrect postal code"
+	case stripe.ErrorCodeIncorrectZip:
+		msg = "Incorrect zip code"
+	case stripe.ErrorCodeAmountTooLarge:
+		msg = "This amount is too large"
+	case stripe.ErrorCodeAmountTooSmall:
+		msg = "This amount is too small"
+	case stripe.ErrorCodeBalanceInsufficient:
+		msg = "Insufficient balance"
 	default:
-		msg = "your card has declined"
+		msg = "Your card has declined"
 	}
 
 	return msg
