@@ -1,12 +1,13 @@
 {{template "base"}}
 
 {{define "title"}}
-    Virtual terminal
+    Credit card POS
 {{end}}
 
 {{define "content"}}
-<h2 class="mt-3 text-center">Virtual terminal</h2>
+<h2 class="mt-3 text-center">Point of Sales</h2>
 <hr>
+<div class= "alert alert-danger text-center d-none" id="card-messages"></div>
 
 <form action="/payement-succeeded" 
 method="post" name="charge_form" 
@@ -40,6 +41,12 @@ autocomple="off" novalidate="">
 
     <a id="pay-button" href="javascript:void(0)" class="btn btn-primary" onClick="val()">Charge Card</a>
 
+    <div id ="processing-payment">
+        <div class ="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Loading......</span>
+        </div>
+    </div>
+
     
 </form>
 
@@ -48,10 +55,62 @@ autocomple="off" novalidate="">
 {{define "js"}}
 <script src="https://js.stripe.com/v3/"></script>
 
-<script>
-function val() {
+    <script>
 
-}
-</script>
+    let stripe; 
+    let card;
+
+    const cardMessages = document.getElementById("card-messages");
+    const payButton = document.getElementById("pay-button");
+    const processing = document.getElementById("processing-payment");
+
+    stripe = Stripe('');
+
+    function hidePayButton() {
+        payButton.classList.add("d-none");
+        processing.classList.remove("d-none");
+    }
+
+    function val() {
+        let form = document.getElementById("charge_form");
+        if (form.checkValidity() === false) {
+            this.event.preventDefault();
+            this.event.stopPropagation();
+            form.classList.add("was-validated");
+            return
+        }
+        form.classList.add("was-validated");
+        hidePayButton();
+    }
+
+    (function () {
+        const elements = stripe.elements();
+        const style = {
+            base:{
+                fontSize: '16px',
+                lineHeight: '24px'
+            }
+        };
+
+        card = elements.create('card', {
+            style:style,
+            hidePostalCode: false,
+        });
+
+        card.mount("#card-element")
+
+        //check for input errors
+        card.addEventListener('change',function(event){
+            var displayError = document.getElementById("card-errors");
+            if (event.error) {
+                displayError.classList.remove('d-none');
+                displayError.textContent = event.error.message;
+            } else {
+                displayError.classList.add('d-none');
+                displayError.textContent = '';
+            }
+        })
+    })();
+    </script>
 {{end}}
 
