@@ -27,7 +27,7 @@ autocomple="off" novalidate="">
 
     <div class="mb-3">
         <label for="cardholder-email" class="form-label">Cardholder E-mail</label>
-        <input class="text" class="form-control" id="cardholder-email" name="cardholder_email"
+        <input class="text" class="form-control" id="cardholder-email" name="email"
             required="" autocomplete="cardholder-email-new">
     </div>
 
@@ -68,7 +68,7 @@ autocomple="off" novalidate="">
     const payButton = document.getElementById("pay-button");
     const processing = document.getElementById("processing-payment");
 
-    stripe = Stripe('');
+    stripe = Stripe({{.API}});
 
     function hidePayButton() {
         payButton.classList.add("d-none");
@@ -123,7 +123,7 @@ autocomple="off" novalidate="">
             body: JSON.stringify(payload),
         }
 
-        fetch("http://localhost:4001/api/payment",reqOptions)
+        fetch("{{index .StringMap "publishable_key"}}",reqOptions)
             .then(response => response.text())
             .then(response => {
                 let data;
