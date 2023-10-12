@@ -150,6 +150,7 @@ autocomple="off" novalidate="">
                                 document.getElementById("payment_currency").value = result.paymentIntent.currency;
                                 processing.classList.add("d-none");
                                 showCardSuccess();
+                                document.getElementById("charge_form").submit();
                             }
                         }
                     })
