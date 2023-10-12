@@ -7,7 +7,7 @@ import (
 	"github.com/go-chi/cors"
 )
 
-func (app *application) routes(w http.ResponseWriter, r *http.Request) http.Handler {
+func (app *application) routes() http.Handler {
 	mux := chi.NewRouter()
 
 	mux.Use(cors.Handler(cors.Options{
@@ -18,5 +18,9 @@ func (app *application) routes(w http.ResponseWriter, r *http.Request) http.Hand
 		MaxAge:           300,
 	}))
 
+	mux.Post("/api/payment",app.GetPaymentIntent)
+
 	return mux
 }
+
+
