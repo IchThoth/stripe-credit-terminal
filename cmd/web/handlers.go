@@ -4,10 +4,13 @@ import (
 	"net/http"
 )
 
-func (app *application) Home(w http.ResponseWriter, r *http.Request) {
+func (app *application) PosTerminal(w http.ResponseWriter, r *http.Request) {
 	stringMap := make(map[string]string)
 	stringMap["publishable_key"] = app.config.stripeInfo.key
-	if err := app.renderTemplates(w, r, "terminal", &templateData{}); err != nil {
+
+	if err := app.renderTemplates(w, r, "terminal", &templateData{
+		StringMap: stringMap,
+	}, "stripe-js"); err != nil {
 		app.errorLog.Println(err)
 	}
 }
@@ -36,6 +39,12 @@ func (app *application) PaymentSucceeded(w http.ResponseWriter, r *http.Request)
 	if err := app.renderTemplates(w, r, "suceeded", &templateData{
 		Data: data,
 	}); err != nil {
+		app.errorLog.Println(err)
+	}
+}
+
+func (app *application) ChargeOnce(w http.ResponseWriter, r *http.Request) {
+	if err := app.renderTemplates(w, r, "buy", nil, "stripe-js"); err != nil {
 		app.errorLog.Println(err)
 	}
 }
