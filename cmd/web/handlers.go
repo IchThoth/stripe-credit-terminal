@@ -2,6 +2,8 @@ package main
 
 import (
 	"net/http"
+
+	"github.com/ichthoth/stripe-credit-terminal/internal/models"
 )
 
 func (app *application) PosTerminal(w http.ResponseWriter, r *http.Request) {
@@ -44,7 +46,18 @@ func (app *application) PaymentSucceeded(w http.ResponseWriter, r *http.Request)
 }
 
 func (app *application) ChargeOnce(w http.ResponseWriter, r *http.Request) {
-	if err := app.renderTemplates(w, r, "buy", nil, "stripe-js"); err != nil {
+	images := models.GopherImages{
+		Id:             1,
+		Name:           "Image",
+		Description:    "a gopher image",
+		InventoryLevel: 10,
+		Price:          1000,
+	}
+	data := make(map[string]interface{})
+	data["images"] = images
+	if err := app.renderTemplates(w, r, "buy", &templateData{
+		Data: data,
+	}, "stripe-js"); err != nil {
 		app.errorLog.Println(err)
 	}
 }
