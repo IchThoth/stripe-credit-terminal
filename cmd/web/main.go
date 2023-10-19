@@ -8,6 +8,8 @@ import (
 	"net/http"
 	"os"
 	"time"
+
+	"github.com/ichthoth/stripe-credit-terminal/internal/store"
 )
 
 const version = "1.0.0"
@@ -21,8 +23,8 @@ type config struct {
 		dsn string
 	}
 	stripeInfo struct {
+		key string
 		secret string
-		pubkey string
 	}
 }
 
@@ -53,15 +55,24 @@ func main() {
 
 	flag.IntVar(&cfg.port, "port", 4000, "server port to listen on")
 	flag.StringVar(&cfg.env, "env", "development", "Application environment {development|production}")
+	flag.StringVar(&cfg.db.dsn,"dsn","shalom:root@tcp(localhost:3306)/products?parseTime=true&tls=false","DSN")
 	flag.StringVar(&cfg.api, "api", "http://localhost:4001", "URL to api")
 
 	flag.Parse()
 
-	cfg.stripeInfo.secret = os.Getenv("SECRET_KEY")
-	cfg.stripeInfo.secret = os.Getenv("PUBLIC_KEY")
+	cfg.stripeInfo.key = os.Getenv("STRIPE_KEY")
+	cfg.stripeInfo.secret = os.Getenv("STRIPE_SECRET")
+
+	
 
 	infoLog := log.New(os.Stdout, "INFO\t", log.Ldate|log.Ltime)
 	errorLog := log.New(os.Stdout, "ERROR\t", log.Ldate|log.Ltime|log.Lshortfile)
+
+	connection, err := store.OpenDB(cfg.db.dsn)
+	if err!= nil {
+		errorLog.Fatal(err)
+	}
+	defer connection.Close()
 
 	tc := make(map[string]*template.Template)
 
@@ -73,7 +84,8 @@ func main() {
 		version:       version,
 	}
 
-	if err := app.Server(); err != nil {
+	err = app.Server() 
+	if err != nil {
 		app.errorLog.Println(err)
 		log.Fatal(err)
 	}
