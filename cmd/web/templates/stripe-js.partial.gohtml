@@ -10,7 +10,7 @@
     const payButton = document.getElementById("pay-button");
     const processing = document.getElementById("processing-payment");
 
-    stripe = Stripe({{.API}});
+    stripe = Stripe({{.StripePubishableKey}});
 
     function hidePayButton() {
         payButton.classList.add("d-none");
@@ -65,7 +65,7 @@
             body: JSON.stringify(payload),
         }
 
-        fetch("{{index .StringMap "publishable_key"}}",reqOptions)
+        fetch("{{.API}}/api/payment",reqOptions)
             .then(response => response.text())
             .then(response => {
                 let data;

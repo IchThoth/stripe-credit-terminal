@@ -7,12 +7,7 @@ import (
 )
 
 func (app *application) PosTerminal(w http.ResponseWriter, r *http.Request) {
-	stringMap := make(map[string]string)
-	stringMap["publishable_key"] = app.config.stripeInfo.key
-
-	if err := app.renderTemplates(w, r, "terminal", &templateData{
-		StringMap: stringMap,
-	}, "stripe-js"); err != nil {
+	if err := app.renderTemplates(w, r, "terminal", &templateData{}, "stripe-js"); err != nil {
 		app.errorLog.Println(err)
 	}
 }
