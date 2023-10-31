@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/go-chi/chi/v5"
 	"github.com/ichthoth/stripe-credit-terminal/internal/cards"
 )
 
@@ -23,50 +24,70 @@ type response struct {
 func (app *application) GetPaymentIntent(w http.ResponseWriter, r *http.Request) {
 	var payload stripePayload
 
-	if err:= json.NewDecoder(r.Body).Decode(&payload); err != nil {
+	if err := json.NewDecoder(r.Body).Decode(&payload); err != nil {
 		app.errorLog.Println(err)
 		return
 	}
 
-	amount,err := strconv.Atoi(payload.Amount)
+	amount, err := strconv.Atoi(payload.Amount)
 	if err != nil {
 		app.errorLog.Println(err)
 	}
 
-	card:= cards.Card{
+	card := cards.Card{
 		Currency: payload.Currency,
-		Secret: app.config.stripeInfo.secret,
-		Key: app.config.stripeInfo.key,
+		Secret:   app.config.stripeInfo.secret,
+		Key:      app.config.stripeInfo.key,
 	}
 
-	okay:= true
+	okay := true
 
-	paymentIntent,msg,err := card.ChargeCard(payload.Currency,amount)
+	paymentIntent, msg, err := card.ChargeCard(payload.Currency, amount)
 	if err != nil {
 		okay = false
 	}
 
 	if okay {
-		out,err:= json.MarshalIndent(paymentIntent," ", "")
+		out, err := json.MarshalIndent(paymentIntent, " ", "")
 		if err != nil {
 			app.errorLog.Println(err)
 		}
-		w.Header().Set("Content-Type","application/json")
+		w.Header().Set("Content-Type", "application/json")
 		w.Write(out)
 	} else {
-		resp:= response{
-			OK: false,
+		resp := response{
+			OK:      false,
 			Message: msg,
 			Content: "",
 		}
 
-		out,err:= json.MarshalIndent(resp,"", "  ")
+		jsonOut, err := json.MarshalIndent(resp, "", "  ")
 		if err != nil {
 			app.errorLog.Println(err)
 		}
 
-		w.Header().Set("Content-Type","application/json")
-		w.Write(out)
+		w.Header().Set("Content-Type", "application/json")
+		w.Write(jsonOut)
 	}
+
+}
+
+func (app *application) GetGopherImagesById(w http.ResponseWriter, r *http.Request) {
+	id := chi.URLParam(r, "id")
+	widgetId, _ := strconv.Atoi(id)
+
+	widget, err := app.DB.GetGopherImages(widgetId)
+	if err != nil {
+		app.errorLog.Println(err)
+		return
+	}
+	jsonOut, err := json.MarshalIndent(widget, "", "  ")
+	if err != nil {
+		app.errorLog.Println(err)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.Write(jsonOut)
 
 }

@@ -7,6 +7,8 @@ import (
 	"net/http"
 	"os"
 	"time"
+
+	"github.com/ichthoth/stripe-credit-terminal/internal/models"
 )
 
 const version = "1.0.0"
@@ -29,6 +31,7 @@ type application struct {
 	infoLog  *log.Logger
 	errorLog *log.Logger
 	version  string
+	DB       models.DBmodels
 }
 
 func (app *application) Server() error {

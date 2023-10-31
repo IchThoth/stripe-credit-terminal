@@ -1,6 +1,7 @@
 package models
 
 import (
+	"context"
 	"database/sql"
 	"time"
 )
@@ -30,4 +31,19 @@ func NewModels(db *sql.DB) Models {
 			DB: db,
 		},
 	}
+}
+
+func (m *DBmodels) GetGopherImages(id int) (GopherImages, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 4*time.Second)
+	defer cancel()
+
+	var image GopherImages
+
+	row := m.DB.QueryRowContext(ctx, "select id, name from GopherImages where id = ?", id)
+	err := row.Scan(&image.Id, &image.Name)
+	if err != nil {
+		return image, err
+	}
+
+	return image, nil
 }
