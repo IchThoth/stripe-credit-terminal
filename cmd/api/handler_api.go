@@ -74,14 +74,14 @@ func (app *application) GetPaymentIntent(w http.ResponseWriter, r *http.Request)
 
 func (app *application) GetGopherImagesById(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
-	widgetId, _ := strconv.Atoi(id)
+	imageId, _ := strconv.Atoi(id)
 
-	widget, err := app.DB.GetGopherImages(widgetId)
+	image, err := app.DB.GetGopherImages(imageId)
 	if err != nil {
 		app.errorLog.Println(err)
 		return
 	}
-	jsonOut, err := json.MarshalIndent(widget, "", "  ")
+	jsonOut, err := json.MarshalIndent(image, "", "  ")
 	if err != nil {
 		app.errorLog.Println(err)
 		return

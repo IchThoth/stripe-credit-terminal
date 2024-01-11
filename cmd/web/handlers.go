@@ -2,8 +2,9 @@ package main
 
 import (
 	"net/http"
+	"strconv"
 
-	"github.com/ichthoth/stripe-credit-terminal/internal/models"
+	"github.com/go-chi/chi/v5"
 )
 
 func (app *application) PosTerminal(w http.ResponseWriter, r *http.Request) {
@@ -41,15 +42,16 @@ func (app *application) PaymentSucceeded(w http.ResponseWriter, r *http.Request)
 }
 
 func (app *application) ChargeOnce(w http.ResponseWriter, r *http.Request) {
-	images := models.GopherImages{
-		Id:             1,
-		Name:           "Image",
-		Description:    "a gopher image",
-		InventoryLevel: 10,
-		Price:          1000,
+	id := chi.URLParam(r, "id")
+	imageId, _ := strconv.Atoi(id)
+
+	image, err := app.DB.GetGopherImages(imageId)
+	if err != nil {
+		app.errorLog.Println(err)
+		return
 	}
 	data := make(map[string]interface{})
-	data["images"] = images
+	data["images"] = image
 	if err := app.renderTemplates(w, r, "buy", &templateData{
 		Data: data,
 	}, "stripe-js"); err != nil {
