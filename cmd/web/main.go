@@ -9,6 +9,7 @@ import (
 	"os"
 	"time"
 
+	"github.com/ichthoth/stripe-credit-terminal/internal/models"
 	"github.com/ichthoth/stripe-credit-terminal/internal/store"
 )
 
@@ -34,6 +35,7 @@ type application struct {
 	errorLog      *log.Logger
 	templateCache map[string]*template.Template
 	version       string
+	DB       models.DBmodels
 }
 
 func (app *application) Server() error {
@@ -74,6 +76,8 @@ func main() {
 	}
 	defer connection.Close()
 
+
+
 	tc := make(map[string]*template.Template)
 
 	app := &application{
@@ -82,6 +86,7 @@ func main() {
 		errorLog:      errorLog,
 		templateCache: tc,
 		version:       version,
+		DB: models.DBmodels{DB: connection},
 	}
 
 	err = app.Server() 
