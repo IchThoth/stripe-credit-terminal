@@ -28,7 +28,7 @@ type GopherImages struct {
 
 type Order struct {
 	ID            int       `json:"id"`
-	WidgetID      int       `json:"widget_id"`
+	ImageID       int       `json:"image_id"`
 	TransactionID int       `json:"transaction_id"`
 	StatusID      int       `json:"status_id"`
 	Quantity      int       `json:"quantity"`
@@ -106,4 +106,68 @@ func (m *DBmodels) GetGopherImages(id int) (GopherImages, error) {
 	}
 
 	return image, nil
+}
+
+func (m *DBmodels) InsertTransaction(tx Transaction) (int, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 4*time.Second)
+	defer cancel()
+
+	sqlstmt := `
+		insert into transactions
+			(amount, currency, last_four, bank_return_code, 
+			transaction_status_id, created_at, updated_at)
+		values(?, ?, ?, ?, ?, ?, ?)
+	
+	`
+	result, err := m.DB.ExecContext(ctx, sqlstmt,
+		tx.Amount,
+		tx.Currency,
+		tx.LastFour,
+		tx.BankReturnCode,
+		tx.TransactionStatusID,
+		time.Now(),
+		time.Now())
+
+	if err != nil {
+		return 0, err
+	}
+
+	id, err := result.LastInsertId()
+	if err != nil {
+		return 0, err
+	}
+
+	return int(id), err
+}
+
+func (m *DBmodels) InsertOrder(ord Order) (int, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 4*time.Second)
+	defer cancel()
+
+	sqlstmt := `
+		insert into transactions
+			(image_id, transaction_id, status_id, quantity, 
+			amount, created_at, updated_at)
+		values(?, ?, ?, ?, ?, ?, ?)
+	
+	`
+	result, err := m.DB.ExecContext(ctx, sqlstmt,
+		ord.ImageID,
+		ord.TransactionID,
+		ord.StatusID,
+		ord.Quantity,
+		ord.Amount,
+		time.Now(),
+		time.Now())
+
+	if err != nil {
+		return 0, err
+	}
+
+	id, err := result.LastInsertId()
+	if err != nil {
+		return 0, err
+	}
+
+	return int(id), err
 }
