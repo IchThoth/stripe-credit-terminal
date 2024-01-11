@@ -5,6 +5,7 @@ import (
 	"strconv"
 
 	"github.com/go-chi/chi/v5"
+	"github.com/ichthoth/stripe-credit-terminal/internal/cards"
 )
 
 func (app *application) PosTerminal(w http.ResponseWriter, r *http.Request) {
@@ -21,18 +22,40 @@ func (app *application) PaymentSucceeded(w http.ResponseWriter, r *http.Request)
 
 	cardHolder := r.Form.Get("cardholder_name")
 	email := r.Form.Get("email")
-	pi := r.Form.Get("payment_intent")
-	pc := r.Form.Get("payment_currency")
-	pa := r.Form.Get("payment_amount")
-	pm := r.Form.Get("payment_method")
+	paymentintent := r.Form.Get("payment_intent")
+	paymentcurrency := r.Form.Get("payment_currency")
+	paymentamount := r.Form.Get("payment_amount")
+	paymentmethod := r.Form.Get("payment_method")
+
+	card := cards.Card{
+		Secret: app.config.stripeInfo.secret,
+		Key:    app.config.stripeInfo.key,
+	}
+	pi, err := card.RetrievePaymentIntent(paymentintent)
+	if err != nil {
+		app.errorLog.Println(err)
+	}
+
+	pm, err := card.Getpaymentmethod(paymentmethod)
+	if err != nil {
+		app.errorLog.Println(err)
+	}
+
+	lastFour := pm.Card.Last4
+	cardExpiryM := pm.Card.ExpMonth
+	cardExpiryY := pm.Card.ExpYear
 
 	data := make(map[string]interface{})
 	data["cardholder"] = cardHolder
 	data["email"] = email
-	data["pi"] = pi
-	data["pc"] = pc
-	data["pa"] = pa
-	data["pm"] = pm
+	data["pi"] = paymentintent
+	data["pc"] = paymentcurrency
+	data["pa"] = paymentamount
+	data["pm"] = paymentmethod
+	data["last_four"] = lastFour
+	data["expiry_month"] = cardExpiryM
+	data["expiry_year"] = cardExpiryY
+	data["bank_return_code"] = pi.Charges.Data[0].ID
 
 	if err := app.renderTemplates(w, r, "suceeded", &templateData{
 		Data: data,
