@@ -14,9 +14,9 @@ method="post" name="charge_form"
 id="charge_form" class="d-block needs-validation charge-form" 
 autocomple="off" novalidate="">
     <div class="mb-3">
-        <label for="amount" class="form-label">Amount</label>
-        <input class="text" class="form-control" id="amount" name="amount"
-            required="" autocomplete="amount-new">
+        <label for="charge_amount" class="form-label">Amount</label>
+        <input class="text" class="form-control" id="charge_amount"
+            required="" autocomplete="charge_amount-new">
     </div>
 
     <div class="mb-3">
@@ -57,6 +57,15 @@ autocomple="off" novalidate="">
 {{end}}
 
 {{define "js"}}
+<script>
+document.getElementById("charge_amount", function(event){
+    if(event.target.value !== ""){
+        document.getElementById("amount").value = event.target.value * 100;
+    } else {
+        document.getElementById("amount").value = 0
+    }
+})
+</script>
 {{template "stripe-js" .}}
 {{end}}
 
