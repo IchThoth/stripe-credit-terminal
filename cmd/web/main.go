@@ -9,12 +9,15 @@ import (
 	"os"
 	"time"
 
+	"github.com/alexedwards/scs/v2"
 	"github.com/ichthoth/stripe-credit-terminal/internal/models"
 	"github.com/ichthoth/stripe-credit-terminal/internal/store"
 )
 
 const version = "1.0.0"
 const cssVersion = "1"
+
+var sess *scs.SessionManager
 
 type config struct {
 	port int
@@ -24,7 +27,7 @@ type config struct {
 		dsn string
 	}
 	stripeInfo struct {
-		key string
+		key    string
 		secret string
 	}
 }
@@ -35,7 +38,8 @@ type application struct {
 	errorLog      *log.Logger
 	templateCache map[string]*template.Template
 	version       string
-	DB       models.DBmodels
+	DB            models.DBmodels
+	Session       *scs.SessionManager
 }
 
 func (app *application) Server() error {
@@ -57,7 +61,7 @@ func main() {
 
 	flag.IntVar(&cfg.port, "port", 4000, "server port to listen on")
 	flag.StringVar(&cfg.env, "env", "development", "Application environment {development|production}")
-	flag.StringVar(&cfg.db.dsn,"dsn","shalom:root@tcp(localhost:3306)/products?parseTime=true&tls=false","DSN")
+	flag.StringVar(&cfg.db.dsn, "dsn", "shalom:root@tcp(localhost:3306)/products?parseTime=true&tls=false", "DSN")
 	flag.StringVar(&cfg.api, "api", "http://localhost:4001", "URL to api")
 
 	flag.Parse()
@@ -65,18 +69,18 @@ func main() {
 	cfg.stripeInfo.key = os.Getenv("STRIPE_KEY")
 	cfg.stripeInfo.secret = os.Getenv("STRIPE_SECRET")
 
-	
-
 	infoLog := log.New(os.Stdout, "INFO\t", log.Ldate|log.Ltime)
 	errorLog := log.New(os.Stdout, "ERROR\t", log.Ldate|log.Ltime|log.Lshortfile)
 
 	connection, err := store.OpenDB(cfg.db.dsn)
-	if err!= nil {
+	if err != nil {
 		errorLog.Fatal(err)
 	}
 	defer connection.Close()
 
-
+	// create a new session
+	sess = scs.New()
+	sess.Lifetime = 24 * time.Hour
 
 	tc := make(map[string]*template.Template)
 
@@ -86,10 +90,11 @@ func main() {
 		errorLog:      errorLog,
 		templateCache: tc,
 		version:       version,
-		DB: models.DBmodels{DB: connection},
+		DB:            models.DBmodels{DB: connection},
+		Session:       sess,
 	}
 
-	err = app.Server() 
+	err = app.Server()
 	if err != nil {
 		app.errorLog.Println(err)
 		log.Fatal(err)
